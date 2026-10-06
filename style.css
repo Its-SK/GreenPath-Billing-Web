@@ -1,0 +1,342 @@
+/* ========================================== */
+/* CSS VARIABLES (DARK MODE BY DEFAULT) */
+/* ========================================== */
+:root {
+    --bg-color: #242424;
+    --card-bg: #333333;
+    --text-main: #FFFFFF;
+    --text-muted: #aaaaaa;
+    --primary-color: #2E8B57;
+    --primary-hover: #245c3d;
+    --accent-orange: #E67E22;
+    --danger: #E74C3C;
+    --border-color: #444444;
+    --input-bg: #1e1e1e;
+}
+
+/* Light Mode Variables (Toggled via JS later) */
+.light-mode {
+    --bg-color: #f0f2f5;
+    --card-bg: #FFFFFF;
+    --text-main: #1a1a1a;
+    --text-muted: #666666;
+    --primary-color: #2E8B57;
+    --primary-hover: #245c3d;
+    --border-color: #dddddd;
+    --input-bg: #f9f9f9;
+}
+
+/* ========================================== */
+/* GLOBAL RESET */
+/* ========================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; transition: 0.3s; }
+.screen { display: none; height: 100vh; width: 100vw; }
+.screen.active { display: flex; }
+.view { display: none; height: 100%; width: 100%; flex-direction: column; overflow-y: auto; padding: 20px; }
+.view.active { display: flex; }
+
+/* ========================================== */
+/* BUTTONS & INPUTS */
+/* ========================================== */
+input, select {
+    width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);
+    background-color: var(--input-bg); color: var(--text-main); font-size: 14px;
+}
+input:focus, select:focus { outline: 2px solid var(--primary-color); border-color: transparent; }
+
+button { cursor: pointer; border: none; border-radius: 6px; transition: 0.2s; font-weight: bold; }
+.btn-primary { background-color: var(--primary-color); color: white; padding: 10px 20px; }
+.btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+.btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 20px; }
+.btn-outline:hover { background: var(--border-color); }
+.text-danger { color: var(--danger) !important; }
+
+/* ========================================== */
+/* LOGIN SCREEN */
+/* ========================================== */
+#auth-screen { justify-content: center; align-items: center; }
+.auth-card { background: var(--card-bg); padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; max-width: 400px; text-align: center; }
+.logo-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--input-bg); margin: 0 auto 20px auto; display: flex; justify-content: center; align-items: center; font-size: 35px; color: var(--primary-color); border: 2px solid var(--primary-color); }
+.logo-circle.small { width: 50px; height: 50px; font-size: 20px; margin-bottom: 10px; }
+.auth-card h2 { margin-bottom: 5px; }
+.subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 30px; }
+.input-group { text-align: left; margin-bottom: 15px; }
+.input-group label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; }
+#login-btn { width: 100%; height: 45px; font-size: 16px; margin-top: 10px; }
+
+
+/* ========================================== */
+/* MAIN CONTENT AREA & SCROLLBAR FIX */
+/* ========================================== */
+/* Forces the main container to stretch across the entire remaining screen */
+.main-content {
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-color);
+}
+
+/* Custom, sleek scrollbars so it looks like a real desktop app */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color); 
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color); 
+}
+
+/* ========================================== */
+/* SIDEBAR */
+/* ========================================== */
+.sidebar { width: 220px; background: var(--card-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 20px 0; }
+.sidebar-header { text-align: center; margin-bottom: 30px; }
+.sidebar-header span { font-weight: normal; font-size: 14px; color: var(--text-muted); }
+.nav-links { list-style: none; display: flex; flex-direction: column; height: 100%; }
+.nav-btn { background: transparent; color: var(--text-main); width: 100%; text-align: left; padding: 12px 20px; font-size: 15px; font-weight: normal; border-radius: 0; display: flex; align-items: center; gap: 10px; }
+.nav-btn:hover { background: var(--input-bg); }
+.nav-btn.active { background: rgba(46, 139, 87, 0.15); border-right: 4px solid var(--primary-color); color: var(--primary-color); font-weight: bold; }
+
+/* ========================================== */
+/* DASHBOARD & FLOATING CARDS */
+/* ========================================== */
+/* Ensure the layout takes the full width and height */
+.dashboard-layout { 
+    display: flex; 
+    gap: 25px; 
+    height: 100%; 
+    width: 100%; 
+}
+
+/* Force the left panel to stretch and take up 60% of the space */
+.left-panel { 
+    flex: 6; 
+    display: flex; 
+    flex-direction: column; 
+    overflow-y: auto; 
+    padding-right: 5px; 
+}
+
+/* Force the right panel to stretch and take up 40% of the space */
+.right-panel { 
+    flex: 4; 
+    display: flex; 
+    flex-direction: column; 
+    min-width: 350px; 
+}
+
+/* Make the inputs inside the form stretch to the edge of the card */
+.form-grid { 
+    display: grid; 
+    grid-template-columns: 120px 1fr; 
+    gap: 12px; 
+    align-items: center; 
+    width: 100%; 
+}
+.form-grid label { 
+    text-align: right; 
+    font-weight: bold; 
+    font-size: 13px; 
+    color: var(--text-muted); 
+}
+
+/* The beautiful floating card effect */
+.floating-card { 
+    background: var(--card-bg); 
+    border-radius: 10px; 
+    padding: 20px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    width: 100%; 
+}
+.card-title { margin-bottom: 15px; color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+
+/* Right Panel specifics */
+.header-ui { text-align: right; margin-bottom: 20px; }
+.receipt-card { flex: 1; display: flex; flex-direction: column; margin-bottom: 20px; overflow: hidden; }
+.receipt-header { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
+.test-list { list-style: none; overflow-y: auto; flex: 1; }
+.test-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 14px; }
+.totals-section { text-align: right; }
+
+/* ========================================== */
+/* DATA TABLES (For Manage & History Pages) */
+/* ========================================== */
+.data-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    text-align: left; 
+    font-size: 14px;
+}
+.data-table th, .data-table td { 
+    padding: 12px 15px; 
+    border-bottom: 1px solid var(--border-color); 
+}
+.data-table th { 
+    background-color: var(--input-bg); 
+    color: var(--text-muted); 
+    font-weight: bold;
+}
+.data-table tbody tr:hover {
+    background-color: rgba(46, 139, 87, 0.05);
+}
+
+/* Action Buttons inside Tables */
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 5px;
+    transition: 0.2s;
+}
+.btn-icon.edit { background-color: rgba(243, 156, 18, 0.2); color: #F39C12; }
+.btn-icon.edit:hover { background-color: #F39C12; color: white; }
+
+.btn-icon.delete { background-color: rgba(231, 76, 60, 0.2); color: #E74C3C; }
+.btn-icon.delete:hover { background-color: #E74C3C; color: white; }
+
+/* Test list overrides for the receipt specifically */
+#selected-tests-list li { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 8px 0; 
+    border-bottom: 1px dashed var(--border-color); 
+    font-size: 14px; 
+}
+
+/* ========================================== */
+/* PROFILE PAGE SPECIFICS */
+/* ========================================== */
+.profile-grid { gap: 18px; }
+.read-only-text { font-size: 15px; color: var(--text-main); font-weight: 500; word-break: break-all; }
+.text-success { color: var(--primary-color) !important; font-weight: bold !important; }
+
+/* ========================================== */
+/* WEB STUDIO SPECIFICS */
+/* ========================================== */
+.studio-navbar { background: #2c3e50; width: 100%; max-width: 900px; padding: 15px 30px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-bottom: 30px; }
+.canvas-container { 
+    background: white; 
+    width: 750px; 
+    height: 1061px; 
+    min-height: 1061px; /* Forces the browser to respect the A4 height */
+    flex-shrink: 0;     /* Tells Flexbox NEVER to squash this element */
+    position: relative; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+    overflow: hidden; 
+    color: black; 
+    transform-origin: top center; 
+    margin-bottom: 50px; 
+}
+.drag-text { position: absolute; cursor: grab; padding: 8px; border: 1px dashed transparent; user-select: none; white-space: nowrap; transform-origin: top left; }
+.drag-text:hover { border-color: #3498db; background: rgba(52,152,219,0.05); }
+.drag-text:active { cursor: grabbing; }
+
+.drag-line { position: absolute; width: 100%; height: 14px; cursor: ns-resize; display: flex; align-items: center; left: 0; }
+.drag-line div { width: 100%; height: 2px; background: black; }
+.drag-line:hover div { background: #3498db; height: 3px; }
+
+.logo-placeholder { position: absolute; border: 2px dashed #95a5a6; background: #ecf0f1; border-radius: 8px; resize: both; overflow: hidden; cursor: grab; }
+.logo-placeholder:hover { border-color: #3498db; }
+.logo-placeholder:active { cursor: grabbing; }
+
+.fixed-footer { position: absolute; bottom: 0; left: 0; right: 0; height: 180px; padding: 0 40px; box-sizing: border-box; color: black; pointer-events: none; }
+.preview-text { position: absolute; left: 50px; width: 650px; color: #555; pointer-events: none; font-family: Arial; font-size: 14px; }
+
+/* Context Menu (Dynamic Dark/Light Theme) */
+.context-menu { 
+    display: none; 
+    position: absolute; 
+    background: var(--card-bg); 
+    border-radius: 8px; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+    padding: 15px; 
+    width: 250px; 
+    z-index: 1000; 
+    border: 1px solid var(--border-color); 
+    font-size: 14px; 
+    color: var(--text-main); 
+}
+.context-menu label { 
+    display: block; 
+    margin-top: 10px; 
+    font-weight: bold; 
+    font-size: 12px; 
+    color: var(--text-muted); 
+    text-align: left; 
+}
+.context-menu input[type="text"], .context-menu input[type="number"], .context-menu select { 
+    width: 100%; 
+    padding: 6px; 
+    margin-top: 4px; 
+    box-sizing: border-box; 
+    border: 1px solid var(--border-color); 
+    border-radius: 4px; 
+    background: var(--input-bg); 
+    color: var(--text-main); 
+}
+.context-menu input[type="color"] { 
+    width: 100%; 
+    height: 30px; 
+    padding: 0; 
+    margin-top: 4px; 
+    border: none; 
+    cursor: pointer; 
+    background: transparent;
+}
+.btn-group { display: flex; gap: 10px; margin-top: 15px; }
+.btn-style { flex: 1; padding: 8px; font-weight: bold; border: 1px solid #ccc; background: #ecf0f1; cursor: pointer; border-radius: 4px; color: black;}
+.btn-style.active { background: #3498db; color: white; border-color: #2980b9; }
+
+/* ========================================== */
+/* HISTORY & MODALS SPECIFICS */
+/* ========================================== */
+.timeline-bar {
+    display: flex; gap: 8px; margin: 15px 0; overflow-x: auto; padding-bottom: 8px;
+}
+.timeline-btn {
+    background: transparent; color: var(--text-main); border: 1px solid var(--border-color);
+    padding: 8px 15px; border-radius: 20px; font-size: 13px; white-space: nowrap; transition: 0.2s;
+}
+.timeline-btn.active {
+    background: var(--accent-orange); color: white; border-color: var(--accent-orange);
+}
+.timeline-btn:hover:not(.active) {
+    background: var(--input-bg);
+}
+
+/* Highlight rows that have a pending due amount */
+.due-row {
+    background-color: rgba(243, 156, 18, 0.15) !important;
+}
+.light-mode .due-row {
+    background-color: #FFF3CD !important;
+}
+
+/* Context Menu Buttons */
+.context-btn {
+    width: 100%; text-align: left; background: transparent; color: var(--text-main);
+    padding: 10px; border-radius: 4px; font-weight: normal; font-size: 14px;
+    border: none; cursor: pointer; transition: 0.2s;
+}
+.context-btn:hover {
+    background: var(--input-bg); color: var(--primary-color);
+}
+
+/* Modal Overlay Background */
+.modal-overlay {
+    background: rgba(0,0,0,0.7); position: fixed; top: 0; left: 0; z-index: 1000; 
+    justify-content: center; align-items: center; display: none;
+}

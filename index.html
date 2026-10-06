@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GREENPATH Diagnostic</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- LOGIN & REGISTRATION SCREEN -->
+    <!-- ========================================== -->
+    <div id="auth-screen" class="screen active">
+        
+        <!-- Main Login Card (Added ID 'login-card') -->
+        <div class="auth-card" id="login-card">
+            <div class="logo-circle"><i class="fa-solid fa-notes-medical"></i></div>
+            <h2>GreenPath Diagnostic</h2>
+            <p class="subtitle">Please login to access your clinic database</p>
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Email Address:</label>
+                    <input type="email" id="login-email" placeholder="clinic@example.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password:</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary" id="login-btn" style="width: 100%; height: 45px; margin-top: 10px;">Login securely</button>
+            </form>
+            <button class="btn-outline" id="show-register-btn" style="width: 100%; height: 45px; margin-top: 10px;" onclick="openRegisterModal()">Register New Clinic</button>
+        </div>
+
+        <!-- Registration Card (Hidden by default, Replaces Login Card) -->
+        <div class="auth-card" id="register-card" style="display: none; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;">
+            <h3 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">Register New Clinic</h3>
+            
+            <form id="register-form">
+                <div class="input-group">
+                    <label>Login Email:</label>
+                    <input type="email" id="reg-email" placeholder="admin@clinic.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password (Min 6 chars):</label>
+                    <input type="password" id="reg-password" placeholder="••••••••" minlength="6" required>
+                </div>
+                
+                <h4 style="margin: 20px 0 10px 0; color: var(--text-muted); text-align: left;">Template Header Details:</h4>
+                
+                <div class="input-group">
+                    <input type="text" id="reg-name" placeholder="Clinic Name" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="reg-address" placeholder="Full Address" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="reg-phone" placeholder="Mobile No." required>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="reg-inv-email" placeholder="Contact Email (For Invoice Print)" required>
+                </div>
+                
+                <div class="input-group" style="margin-top: 15px;">
+                    <label>Upload Clinic Logo (Optional):</label>
+                    <!-- Added var(--input-bg) so the file uploader matches dark mode -->
+                    <input type="file" id="reg-logo" accept="image/png, image/jpeg, image/jpg" style="background: var(--input-bg); padding: 5px; color: var(--text-main);">
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button type="button" class="btn-outline" style="flex: 1;" onclick="closeRegisterModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="reg-submit-btn" style="flex: 2; background-color: #2E8B57;">Register & Setup Workspace</button>
+                </div>
+            </form>
+        </div>
+        
+    </div>
+
+    <!-- MAIN APPLICATION -->
+    <div id="app-screen" class="screen">
+        
+        <!-- SIDEBAR -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-circle small"><i class="fa-solid fa-notes-medical"></i></div>
+                <h3>GREENPATH<br><span>Diagnostic</span></h3>
+            </div>
+            <ul class="nav-links">
+                <li><button class="nav-btn active" data-target="dashboard"><i class="fa-solid fa-house-medical"></i> Dashboard</button></li>
+                <li><button class="nav-btn" data-target="profile"><i class="fa-solid fa-user"></i> Profile</button></li>
+                <li><button class="nav-btn" data-target="manage-tests"><i class="fa-solid fa-vial"></i> Manage Tests</button></li>
+                <li><button class="nav-btn" data-target="manage-doctors"><i class="fa-solid fa-user-doctor"></i> Manage Doctors</button></li>
+                <li><button class="nav-btn" data-target="manage-agents"><i class="fa-solid fa-user-tie"></i> Manage Agents</button></li>
+                <li><button class="nav-btn" data-target="history"><i class="fa-solid fa-clock-rotate-left"></i> History</button></li>
+                <li><button class="nav-btn" data-target="report"><i class="fa-solid fa-file-medical"></i> Report</button></li>
+                <li style="margin-top: auto;"><button class="nav-btn text-danger" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button></li>
+            </ul>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            
+            <!-- 1. DASHBOARD VIEW -->
+            <div id="dashboard-view" class="view active">
+                <div class="dashboard-layout">
+                    <div class="left-panel">
+                        <div class="floating-card">
+                            <h4 class="card-title">Patient Details</h4>
+                            <div class="form-grid">
+                                <label>Patient Name:</label> <input type="text" id="pat-name">
+                                <label>Age:</label> <input type="number" id="pat-age">
+                                <label>Gender:</label> 
+                                <select id="pat-gender"><option>Male</option><option>Female</option><option>Other</option></select>
+                                <label>Ref By Doctor:</label> <input type="text" id="pat-doctor" list="doctor-list">
+                                <label>Agent:</label> <input type="text" id="pat-agent" list="agent-list">
+                                <label>Address:</label> <input type="text" id="pat-address">
+                                <label>Contact No:</label> <input type="number" id="pat-contact">
+                            </div>
+                        </div>
+
+                        <div class="floating-card" style="margin-top: 20px;">
+                            <h4 class="card-title">Billing & Tests</h4>
+                            <div class="form-grid">
+                                <label>Test Name:</label> <input type="text" id="test-name" list="test-list">
+                                <label>Amount (₹):</label> <input type="number" id="test-amount">
+                                <label>Advance (₹):</label> <input type="number" id="bill-advance" value="0">
+                                <label>Discount (₹):</label> <input type="number" id="bill-discount" value="0">
+                            </div>
+                            <div style="text-align: right; margin-top: 15px;">
+                                <button class="btn-primary" id="add-test-btn">Add Test</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="right-panel">
+                        <div class="header-ui" style="text-align: right; margin-bottom: 20px;">
+                            <span id="display-date" style="color: var(--text-muted);">Date: --/--/----</span>
+                            <h2 id="display-bill-no" style="color: var(--primary-color);">Next Bill: GPDL----</h2>
+                        </div>
+                        <div class="floating-card receipt-card" style="flex: 1; display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px; font-weight: bold;">
+                                <span>Test Name</span><span>Amount (₹)</span>
+                            </div>
+                            <ul id="selected-tests-list" style="list-style: none; overflow-y: auto; flex: 1;"></ul>
+                        </div>
+                        <div style="text-align: right; margin-bottom: 20px;">
+                            <p style="color: var(--text-muted); font-weight: bold;">Total Amount</p>
+                            <h1 id="display-total" style="color: var(--accent-orange);">₹0.00</h1>
+                            <span style="font-size: 14px; color: var(--text-muted);">Due: <b id="display-due">₹0.00</b></span>
+                        </div>
+                        <button class="btn-primary" id="print-invoice-btn" style="width: 100%; height: 50px; font-size: 18px;"><i class="fa-solid fa-print"></i> Print Invoice</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. PROFILE VIEW -->
+            <div id="profile-view" class="view">
+                <h2><i class="fa-solid fa-user"></i> Clinic Profile</h2>
+                <div class="floating-card" style="max-width: 650px; margin-top: 20px;">
+                    <div class="form-grid profile-grid">
+                        <label>Clinic ID:</label> <span id="prof-id" class="read-only-text">Loading...</span>
+                        <label>Registered Login:</label> <span id="prof-login" class="read-only-text">Loading...</span>
+                        <label>Clinic Name:</label> <span id="prof-name" class="read-only-text">Loading...</span>
+                        <label>Address:</label> <span id="prof-address" class="read-only-text">Loading...</span>
+                        <label>Mobile No:</label> <span id="prof-phone" class="read-only-text">Loading...</span>
+                        <label>Invoice Email:</label> <span id="prof-email" class="read-only-text">Loading...</span>
+                        <label>Main Bill Template:</label> <span class="read-only-text text-success">Native PDF Generator (Active)</span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 30px;">
+                        <button class="btn-primary" style="flex: 1; background-color: #8E44AD; font-size: 15px; height: 45px;" onclick="openWebStudio()">
+                            🪄 Live Edit Bill Layout
+                        </button>
+                        <button class="btn-primary" style="flex: 1; background-color: #E74C3C; font-size: 15px; height: 45px;" onclick="factoryResetLayout()">
+                            🗑️ Factory Reset Layout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. MANAGE TESTS VIEW -->
+            <div id="manage-tests-view" class="view">
+                <h2><i class="fa-solid fa-vial"></i> Manage Tests Database</h2>
+                <div class="floating-card" style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="new-test-name" placeholder="Test Name" style="flex: 2;">
+                    <input type="number" id="new-test-amt" placeholder="Amount (₹)" style="flex: 1;">
+                    <button class="btn-primary" onclick="dbAddTest()">➕ Add Test</button>
+                </div>
+                <div class="floating-card" style="margin-top: 20px;">
+                    <table class="data-table" id="db-test-table">
+                        <thead><tr><th>Test Name</th><th>Amount (₹)</th><th style="width: 150px;">Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. MANAGE DOCTORS VIEW -->
+            <div id="manage-doctors-view" class="view">
+                <h2><i class="fa-solid fa-user-doctor"></i> Manage Doctors Database</h2>
+                <div class="floating-card" style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="new-doctor-name" placeholder="Doctor Name" style="flex: 1;">
+                    <button class="btn-primary" onclick="dbAddDoctor()">➕ Add Doctor</button>
+                </div>
+                <div class="floating-card" style="margin-top: 20px;">
+                    <table class="data-table" id="db-doctor-table">
+                        <thead><tr><th>Doctor Name</th><th style="width: 150px;">Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 5. MANAGE AGENTS VIEW -->
+            <div id="manage-agents-view" class="view">
+                <h2><i class="fa-solid fa-user-tie"></i> Manage Agents Database</h2>
+                <div class="floating-card" style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="new-agent-name" placeholder="Agent Name" style="flex: 1;">
+                    <button class="btn-primary" onclick="dbAddAgent()">➕ Add Agent</button>
+                </div>
+                <div class="floating-card" style="margin-top: 20px;">
+                    <table class="data-table" id="db-agent-table">
+                        <thead><tr><th>Agent Name</th><th style="width: 150px;">Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 6. HISTORY VIEW -->
+            <div id="history-view" class="view">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> Patient History & Records</h2>
+                    <button class="btn-primary" onclick="exportHistoryExcel()" style="background-color: #2E8B57; height: 45px;"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
+                </div>
+
+                <div class="floating-card" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 15px;">
+                    <input type="text" id="history-search" placeholder="Search by Name, Bill No, Date..." style="flex: 2; min-width: 200px; margin: 0;">
+                    <button class="btn-primary" onclick="openFilterModal()" style="background-color: #8E44AD; height: 41px;"><i class="fa-solid fa-filter"></i> Filters ⚙️</button>
+                    <button class="btn-outline" onclick="refreshHistory()" style="height: 41px;"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
+
+                <!-- Smart Month Timeline -->
+                <div id="history-timeline" class="timeline-bar"></div>
+
+                <div class="floating-card" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 0;">
+                    <div style="overflow-y: auto; flex: 1;">
+                        <table class="data-table" id="history-table">
+                            <thead><tr id="history-thead"></tr></thead>
+                            <tbody id="history-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- HISTORY MODALS & MENUS (Hidden by default) -->
+            <!-- ========================================== -->
+            
+            <!-- Context Menu for Right Click -->
+            <div id="historyContextMenu" class="context-menu" style="width: 150px; padding: 5px;">
+                <button class="context-btn" onclick="triggerEditBill()"><i class="fa-solid fa-pen"></i> Edit Bill</button>
+                <button class="context-btn" onclick="triggerPayDue()"><i class="fa-solid fa-money-bill-wave"></i> Pay Due</button>
+            </div>
+
+            <!-- Advanced Filter Modal -->
+            <div id="filter-modal" class="screen modal-overlay">
+                <div class="floating-card" style="max-width: 500px; width: 100%;">
+                    <h3 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">Advanced Filters</h3>
+                    <div class="form-grid" style="grid-template-columns: 100px 1fr;">
+                        <label>From Date:</label> <input type="date" id="filter-from">
+                        <label>To Date:</label> <input type="date" id="filter-to">
+                        
+                        <label>Doctor:</label>
+                        <select id="filter-doctor"><option value="">All Doctors</option></select>
+                        
+                        <label>Agent:</label>
+                        <select id="filter-agent"><option value="">All Agents</option></select>
+                    </div>
+                    <div style="margin-top: 15px; text-align: right;">
+                        <label style="cursor: pointer; font-weight: bold; color: var(--accent-orange);">
+                            <input type="checkbox" id="filter-due-only" style="width: auto; transform: scale(1.2); margin-right: 5px;"> Show Only Pending Dues
+                        </label>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn-outline" style="flex: 1;" onclick="closeFilterModal()">Cancel</button>
+                        <button class="btn-primary" style="flex: 1; background-color: #D35400;" onclick="clearHistoryFilters()">Reset</button>
+                        <button class="btn-primary" style="flex: 1;" onclick="applyHistoryFilters()">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pay Due Modal -->
+            <div id="pay-due-modal" class="screen modal-overlay">
+                <div class="floating-card" style="max-width: 400px; width: 100%;">
+                    <h3 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">Pay Due - <span id="pay-due-bill-no"></span></h3>
+                    <h2 style="text-align: center; margin-bottom: 20px;">Current Due: <span id="pay-due-current" style="color: var(--danger);">₹0.00</span></h2>
+                    
+                    <div class="form-grid" style="grid-template-columns: 150px 1fr;">
+                        <label>Additional Discount (₹):</label> <input type="number" id="pay-due-discount" value="0">
+                        <label>Amount Paid Now (₹):</label> <input type="number" id="pay-due-paid" value="0">
+                    </div>
+                    
+                    <h3 style="text-align: center; margin-top: 20px; color: var(--accent-orange);" id="pay-due-remaining-lbl">Remaining Due: ₹0.00</h3>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn-outline" style="flex: 1;" onclick="closePayDueModal()">Cancel</button>
+                        <button class="btn-primary" style="flex: 1; background-color: #2E8B57;" onclick="confirmDuePayment()">Confirm Payment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Full Bill Modal -->
+            <div id="edit-bill-modal" class="screen modal-overlay">
+                <div class="floating-card" style="max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto;">
+                    <h3 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">Edit Bill - <span id="eb-bill-no"></span></h3>
+
+                    <div style="display: flex; gap: 25px; flex-wrap: wrap;">
+                        <!-- Left Column: Patient Details -->
+                        <div style="flex: 1; min-width: 320px;">
+                            <h4 class="card-title" style="font-size: 15px;">Patient Details</h4>
+                            <div class="form-grid">
+                                <label>Patient Name:</label> <input type="text" id="eb-pat-name">
+                                <label>Age:</label> <input type="number" id="eb-pat-age">
+                                <label>Gender:</label>
+                                <select id="eb-pat-gender"><option>Male</option><option>Female</option><option>Other</option></select>
+                                <label>Ref By:</label> <input type="text" id="eb-pat-doctor" list="doctor-list">
+                                <label>Agent:</label> <input type="text" id="eb-pat-agent" list="agent-list">
+                                <label>Address:</label> <input type="text" id="eb-pat-address">
+                                <label>Contact No:</label> <input type="number" id="eb-pat-contact">
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Tests & Billing -->
+                        <div style="flex: 1; min-width: 320px; display: flex; flex-direction: column;">
+                            <h4 class="card-title" style="font-size: 15px;">Billing & Tests</h4>
+                            
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" id="eb-test-name" list="test-list" placeholder="Test Name" style="flex: 2;">
+                                <input type="number" id="eb-test-amount" placeholder="Amt (₹)" style="flex: 1;">
+                                <button class="btn-primary" onclick="ebAddTest()" style="padding: 5px 15px;">Add</button>
+                            </div>
+                            
+                            <!-- Test List specific to Editor -->
+                            <ul id="eb-test-list" style="list-style: none; overflow-y: auto; flex: 1; min-height: 120px; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; margin-bottom: 15px; background: var(--input-bg);"></ul>
+
+                            <div class="form-grid" style="grid-template-columns: 120px 1fr;">
+                                <label>Advance (₹):</label> <input type="number" id="eb-advance" oninput="ebUpdateTotals()">
+                                <label>Discount (₹):</label> <input type="number" id="eb-discount" oninput="ebUpdateTotals()">
+                            </div>
+                            
+                            <div style="text-align: right; margin-top: 15px; font-size: 18px;">
+                                <span style="color: var(--text-muted);">Total: ₹<b id="eb-total">0.00</b></span><br>
+                                <span style="color: var(--danger); font-size: 20px;">Due: ₹<b id="eb-due">0.00</b></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 25px;">
+                        <button class="btn-outline" style="flex: 1;" onclick="closeEditBillModal()">Cancel</button>
+                        <button class="btn-primary" style="flex: 1; background-color: #F39C12;" onclick="saveAndPrintEditedBill()">🖨️ Save & Print Bill</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. REPORT VIEW -->
+            <div id="report-view" class="view">
+                <h2><i class="fa-solid fa-file-medical"></i> Custom Report Modules</h2>
+                <div class="floating-card" style="margin-top: 20px; text-align: center; padding: 50px;">
+                    <i class="fa-solid fa-flask" style="font-size: 50px; color: var(--primary-color); margin-bottom: 20px;"></i>
+                    <h3>Report Builder Engine</h3>
+                    <p style="color: var(--text-muted); margin-top: 10px;">The complex DOCX template parsing engine is currently being ported to the Web App. Full report generation will be available in the next update.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Datalists -->
+    <datalist id="doctor-list"></datalist>
+    <datalist id="agent-list"></datalist>
+    <datalist id="test-list"></datalist>
+
+    <!-- ========================================== -->
+    <!-- WEB STUDIO SCREEN (Hidden by default) -->
+    <!-- ========================================== -->
+    <div id="studio-screen" class="screen" style="background: #1a1a1a; flex-direction: column; align-items: center; overflow-y: auto; padding: 20px;">
+        <div class="studio-navbar">
+            <div>
+                <h2 style="color: white; margin: 0; font-size: 22px;">✨ GreenPath Web Studio</h2>
+                <span style="font-size:13px; color:#bdc3c7;">Right-Click Text to Edit Style/Color. Double-Click Logo to change image. Drag bottom-right of logo to resize.</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-outline" style="color: white; border-color: white;" onclick="closeWebStudio()">Cancel</button>
+                <button class="btn-primary" id="save-studio-btn" style="background: #27ae60;" onclick="saveStudioLayout()">💾 Save Layout</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container" id="studio-canvas"></div>
+
+        <!-- RIGHT CLICK MENU -->
+        <div id="contextMenu" class="context-menu">
+            <label>Text Content:</label>
+            <input type="text" id="cmText" oninput="updateStudioStyle()">
+            
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 2;">
+                    <label>Font:</label>
+                    <select id="cmFont" onchange="updateStudioStyle()">
+                        <option value="Arial">Arial</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Courier New">Courier</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label>Size:</label>
+                    <input type="number" id="cmSize" oninput="updateStudioStyle()">
+                </div>
+            </div>
+
+            <label>Text Color:</label>
+            <input type="color" id="cmColor" oninput="updateStudioStyle()">
+
+            <div class="btn-group">
+                <button id="cmBold" class="btn-style" onclick="toggleStudioBold()">B</button>
+                <button id="cmItalic" class="btn-style" style="font-style: italic;" onclick="toggleStudioItalic()">I</button>
+            </div>
+        </div>
+        <input type="file" id="logo-upload-input" accept="image/png, image/jpeg" style="display:none;">
+    </div>
+
+    <!-- ========================================== -->
+    <!-- UNIFIED EDIT MODAL (Custom Popup) -->
+    <!-- ========================================== -->
+    <div id="edit-modal" class="screen" style="background: rgba(0,0,0,0.7); position: fixed; top: 0; left: 0; z-index: 1000; justify-content: center; align-items: center; display: none;">
+        <div class="floating-card" style="max-width: 400px; width: 100%;">
+            <h3 id="edit-modal-title" style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">Edit Entry</h3>
+            
+            <div class="form-grid" style="grid-template-columns: 100px 1fr;">
+                <label id="edit-lbl-1">Name:</label>
+                <input type="text" id="edit-val-1">
+                
+                <label id="edit-lbl-2">Amount (₹):</label>
+                <input type="number" id="edit-val-2">
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-outline" style="flex: 1;" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-primary" style="flex: 1;" id="save-edit-btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
